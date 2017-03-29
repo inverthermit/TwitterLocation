@@ -8,14 +8,43 @@ public class Main {
 	public static int[] areaNames = new int[1000];//size of areas
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		/*MPI.Init(args);
-		int me = MPI.COMM_WORLD.Rank();
-		 int size = MPI.COMM_WORLD.Size();
-		 System.out.println("Hi from <"+me+">"+size);
-		 MPI.Finalize();*/
-		run();
+		MPI.Init(args);
+		int rank = MPI.COMM_WORLD.Rank();
+		int size = MPI.COMM_WORLD.Size();
+	  
+	    if (rank == 0){
+	      String[] msg = new String[10]; 
+	      msg[0] = new String("{\"json\":{\"coordinates\":{\"coordinates\":[145.19870907,-37.72320424]}}}");
+	      MPI.COMM_WORLD.Send(msg, 0, 1, MPI.OBJECT, 1, 13);
+	      int[] index = new int[10];
+	      MPI.COMM_WORLD.Recv(index, 0, 1, MPI.INT, 1, 13);
+	      System.out.println(index[0]);
+	    }else {
+	    	System.out.println("rank:"+rank);
+	      String[] message = new String[10]; 
+	      MPI.COMM_WORLD.Recv(message, 0, 1, MPI.OBJECT, 0, 13);
+	      //System.out.println(message[0]);
+	      int[] index = new int[10];
+	      index[0]= json2BoxName(message[0]);
+	      MPI.COMM_WORLD.Send(index, 0, 1, MPI.INT, 0, 13);
+	      
+	    }
+
+	    MPI.Finalize() ;
+		//run();
 		
 
+	}
+	
+	public static int json2BoxName(String str){
+		double[] coo = getLocation(str);
+	      for(int i=0;i<Common.BOXES.length;i++){
+				if(inArea(Common.BOXES[i],coo) == true){
+					//System.out.println(Common.BOX_NAMES[i]);
+					return i;
+				}
+			}
+	      return -1;
 	}
 	
 	
@@ -67,15 +96,22 @@ public class Main {
 		}
 	}
 	
+	
+	
 	public static boolean inArea(double[][] area, double[] coordinates){ //area: {{1,2},{2,2},{2,3},{1,3}}
 		if(coordinates.length != 2) return false;
 		double longitude = coordinates[0];
 		double latitude = coordinates[1];
 		 
-		if(longitude>area[0][0]&&latitude<area[0][1]  
-				&&longitude<area[1][0]&&latitude<area[1][1] 
-				&&longitude<area[2][0]&&latitude>area[2][1] 
-				&&longitude>area[3][0]&&latitude>area[3][1]){
+		if(longitude>area[0][0]
+		   &&latitude<area[0][1]  
+		   &&longitude<area[1][0]
+		   //&&latitude<area[1][1] 
+		   //&&longitude<area[2][0]
+		   &&latitude>area[2][1] 
+		   //&&longitude>area[3][0]
+		   //&&latitude>area[3][1]
+		   ){
 			return true;
 		}
 		else{
