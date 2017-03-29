@@ -60,16 +60,30 @@ public class Main {
 					continue;
 				}
 				msg[0] = str;
-				System.out.println((count%(size-1)+1));
-		        MPI.COMM_WORLD.Send(msg, 0, 1, MPI.OBJECT, (count%(size-1)+1), 13);
-		        int[] index = new int[10];
-		        MPI.COMM_WORLD.Recv(index, 0, 1, MPI.INT, (count%(size-1)+1), 13);
-		        //System.out.println(index[0]);
+				//System.out.println((count%(size-1)+1));
+				int workRank = count%(size-1)+1;
+		        MPI.COMM_WORLD.Send(msg, 0, 1, MPI.OBJECT, workRank, 13);
+		        if(workRank == (size-1)){
+		        	for(int i=1;i<size;i++){
+		        		int[] index = new int[10];
+				        MPI.COMM_WORLD.Recv(index, 0, 1, MPI.INT, i, 13);
+				        if(index[0]!=-1){
+						      assign2Area(index[0]);
+					    }
+		        	}
+		        }
+		        count++;
+			}
+			//Last few workRanks
+			//System.out.println(count+"-"+count%(size-1));
+			for(int i=1;i<=count%(size-1);i++){
+        		int[] index = new int[10];
+		        MPI.COMM_WORLD.Recv(index, 0, 1, MPI.INT, i, 13);
 		        if(index[0]!=-1){
 				      assign2Area(index[0]);
 			    }
-		        count++;
-			}
+        	}
+			
 			br.close();
 			for(int i=0;i<size-1;i++){
 				msg[0] = "end";
@@ -101,7 +115,7 @@ public class Main {
 		  	    	  break;
 		  	      }
 		  	      int[] index = new int[10];
-		  	      System.out.println(message[0]);
+		  	      //System.out.println(message[0]);
 		  	      index[0]= json2BoxName(message[0]);
 		  	      MPI.COMM_WORLD.Send(index, 0, 1, MPI.INT, 0, 13);
 	    	}
