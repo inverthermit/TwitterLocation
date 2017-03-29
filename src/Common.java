@@ -24,4 +24,5 @@ public class Common {
 		"C1","C2","C3","C4","C5",
 		"D3","D4","D5"
 	};
+	public static final int AREA_SIZE = BOX_NAMES.length;
 }

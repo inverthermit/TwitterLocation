@@ -4,8 +4,8 @@ import mpi.*;
 
 import java.io.*;
 public class Main {
-	public static int[] assignArea = new int[1000];//size of areas
-	public static int[] areaNames = new int[1000];//size of areas
+	
+	public static int[] assignArea = new int[Common.AREA_SIZE];//size of areas
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		MPI.Init(args);
@@ -18,7 +18,8 @@ public class Main {
 	      MPI.COMM_WORLD.Send(msg, 0, 1, MPI.OBJECT, 1, 13);
 	      int[] index = new int[10];
 	      MPI.COMM_WORLD.Recv(index, 0, 1, MPI.INT, 1, 13);
-	      System.out.println(index[0]);
+	      //System.out.println(Common.AREA_SIZE);
+	      
 	    }else {
 	    	System.out.println("rank:"+rank);
 	      String[] message = new String[10]; 
@@ -26,10 +27,16 @@ public class Main {
 	      //System.out.println(message[0]);
 	      int[] index = new int[10];
 	      index[0]= json2BoxName(message[0]);
+	      assign2Area(index[0]);
 	      MPI.COMM_WORLD.Send(index, 0, 1, MPI.INT, 0, 13);
 	      
 	    }
-
+	    System.out.println("Ready to finalize");
+	    if(rank == 0){
+	    	 for(int i=0;i<Common.AREA_SIZE;i++){
+	    		  System.out.println(Common.BOX_NAMES[i]+":"+assignArea[i]);
+	      }
+	    }
 	    MPI.Finalize() ;
 		//run();
 		
@@ -124,7 +131,7 @@ public class Main {
 	
 	public static void save2file(){
 		for(int i=0;i<assignArea.length;i++){
-			String line = areaNames[i]+":"+assignArea[i];
+			String line = Common.BOX_NAMES[i]+":"+assignArea[i];
 			//Save Line to a file
 		}
 	}
