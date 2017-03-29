@@ -3,39 +3,122 @@ import net.sf.json.JSONObject;
 import mpi.*;
 
 import java.io.*;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 public class Main {
 	
 	public static int[] assignArea = new int[Common.AREA_SIZE];//size of areas
-	public static void main(String[] args) {
+	/*public static void main(String[] args) { 
+
+		MPI.Init(args);
+		int rank = MPI.COMM_WORLD.Rank();
+		int size = MPI.COMM_WORLD.Size();
+		int unitSize=4, tag=100, master=0;
+		
+		if(rank == master){  master 
+			int sendbuf[] = new int[unitSize*(size-1)];
+		
+		for (int i=1; i<size; i++)
+			MPI.COMM_WORLD.Send(sendbuf, (i-1)*unitSize,  unitSize,  MPI.INT,  i,  tag);
+		
+		for (int i=1; i<size; i++)
+			MPI.COMM_WORLD.Recv(sendbuf, (i-1)*unitSize,  unitSize,  MPI.INT,  i,  tag);
+		
+		for (int i=0; i<unitSize*(size-1); i++)
+			System.out.println("Hi from <"+sendbuf[i]+">");
+		} else { worker 
+			
+			int recvbuf[] = new int[unitSize];
+			MPI.COMM_WORLD.Recv(recvbuf, 0,  unitSize,  MPI.INT,  master,  tag);
+			
+			for (int i=0; i<unitSize; i++)
+				recvbuf[i] = rank; computation loop 
+		
+			MPI.COMM_WORLD.Send(recvbuf, 0, unitSize, MPI.INT, master, tag);
+		}
+		
+		MPI.Finalize();
+	  }*/
+	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
+		DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+		Date startDate = new Date();
+		String start = (dateFormat.format(startDate));
 		MPI.Init(args);
 		int rank = MPI.COMM_WORLD.Rank();
 		int size = MPI.COMM_WORLD.Size();
 	  
 	    if (rank == 0){
 	      String[] msg = new String[10]; 
-	      msg[0] = new String("{\"json\":{\"coordinates\":{\"coordinates\":[145.19870907,-37.72320424]}}}");
+	      BufferedReader br = new BufferedReader(new FileReader("data/tinyTwitter.json"));
+			int count = 0;
+			while(br.ready()){
+				//System.out.println(count);
+				String str = br.readLine();
+				if(str.equals("[")||str.equals("]")){
+					continue;
+				}
+				msg[0] = str;
+				System.out.println((count%(size-1)+1));
+		        MPI.COMM_WORLD.Send(msg, 0, 1, MPI.OBJECT, (count%(size-1)+1), 13);
+		        int[] index = new int[10];
+		        MPI.COMM_WORLD.Recv(index, 0, 1, MPI.INT, (count%(size-1)+1), 13);
+		        //System.out.println(index[0]);
+		        if(index[0]!=-1){
+				      assign2Area(index[0]);
+			    }
+		        count++;
+			}
+			br.close();
+			for(int i=0;i<size-1;i++){
+				msg[0] = "end";
+		        MPI.COMM_WORLD.Send(msg, 0, 1, MPI.OBJECT, i+1, 13);
+		        int[] index = new int[10];
+		        MPI.COMM_WORLD.Recv(index, 0, 1, MPI.INT, i+1, 13);
+		        //System.out.println("Finished Receiving end");
+			}
+	      
+	      /*msg[0] = new String("{\"json\":{\"coordinates\":{\"coordinates\":[145.19870907,-37.72320424]}}}");
 	      MPI.COMM_WORLD.Send(msg, 0, 1, MPI.OBJECT, 1, 13);
 	      int[] index = new int[10];
 	      MPI.COMM_WORLD.Recv(index, 0, 1, MPI.INT, 1, 13);
-	      //System.out.println(Common.AREA_SIZE);
-	      
+	      System.out.println(index[0]);
+	      assign2Area(index[0]);*/
+	      //assignArea[index[0]]++;
+	      //System.out.println(assignArea[index[0]]);
 	    }else {
-	    	System.out.println("rank:"+rank);
-	      String[] message = new String[10]; 
-	      MPI.COMM_WORLD.Recv(message, 0, 1, MPI.OBJECT, 0, 13);
-	      //System.out.println(message[0]);
-	      int[] index = new int[10];
-	      index[0]= json2BoxName(message[0]);
-	      assign2Area(index[0]);
-	      MPI.COMM_WORLD.Send(index, 0, 1, MPI.INT, 0, 13);
+	    	//System.out.println("rank:"+rank);
+	    	while(true){
+	    		  String[] message = new String[10]; 
+		  	      MPI.COMM_WORLD.Recv(message, 0, 1, MPI.OBJECT, 0, 13);
+		  	      //System.out.println(message[0]);
+		  	      if(message[0].equals("end")){
+		  	    	int[] index = new int[10];
+			  	      //System.out.println(message[0]);
+			  	      index[0]= -1;
+			  	      MPI.COMM_WORLD.Send(index, 0, 1, MPI.INT, 0, 13);
+		  	    	  break;
+		  	      }
+		  	      int[] index = new int[10];
+		  	      System.out.println(message[0]);
+		  	      index[0]= json2BoxName(message[0]);
+		  	      MPI.COMM_WORLD.Send(index, 0, 1, MPI.INT, 0, 13);
+	    	}
+	      
+	      
+	      
 	      
 	    }
-	    System.out.println("Ready to finalize");
+	    System.out.println(rank+":Ready to finalize");
 	    if(rank == 0){
 	    	 for(int i=0;i<Common.AREA_SIZE;i++){
 	    		  System.out.println(Common.BOX_NAMES[i]+":"+assignArea[i]);
 	      }
+	    	 Date endDate = new Date();
+	 		String end = (dateFormat.format(endDate));
+	 		System.out.println("Start:"+start);
+	 		System.out.println("End: "+end);
 	    }
 	    MPI.Finalize() ;
 		//run();
