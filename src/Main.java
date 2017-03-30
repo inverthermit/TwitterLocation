@@ -1,45 +1,15 @@
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
 import mpi.*;
 
 import java.io.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import com.google.gson.*;
+import com.google.gson.stream.JsonReader;
 public class Main {
 	
 	public static int[] assignArea = new int[Common.AREA_SIZE];//size of areas
-	/*public static void main(String[] args) { 
-
-		MPI.Init(args);
-		int rank = MPI.COMM_WORLD.Rank();
-		int size = MPI.COMM_WORLD.Size();
-		int unitSize=4, tag=100, master=0;
-		
-		if(rank == master){  master 
-			int sendbuf[] = new int[unitSize*(size-1)];
-		
-		for (int i=1; i<size; i++)
-			MPI.COMM_WORLD.Send(sendbuf, (i-1)*unitSize,  unitSize,  MPI.INT,  i,  tag);
-		
-		for (int i=1; i<size; i++)
-			MPI.COMM_WORLD.Recv(sendbuf, (i-1)*unitSize,  unitSize,  MPI.INT,  i,  tag);
-		
-		for (int i=0; i<unitSize*(size-1); i++)
-			System.out.println("Hi from <"+sendbuf[i]+">");
-		} else { worker 
-			
-			int recvbuf[] = new int[unitSize];
-			MPI.COMM_WORLD.Recv(recvbuf, 0,  unitSize,  MPI.INT,  master,  tag);
-			
-			for (int i=0; i<unitSize; i++)
-				recvbuf[i] = rank; computation loop 
-		
-			MPI.COMM_WORLD.Send(recvbuf, 0, unitSize, MPI.INT, master, tag);
-		}
-		
-		MPI.Finalize();
-	  }*/
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
 		DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
@@ -50,7 +20,7 @@ public class Main {
 		int size = MPI.COMM_WORLD.Size();
 	  
 	    if (rank == 0){
-	      String[] msg = new String[10]; 
+	      
 	      BufferedReader br = new BufferedReader(new FileReader(args[3]));//data/tinyTwitter.json
 			int count = 0;
 			while(br.ready()){
@@ -59,13 +29,14 @@ public class Main {
 				if(str.equals("[")||str.equals("]")){
 					continue;
 				}
+				String[] msg = new String[1]; 
 				msg[0] = str;
 				//System.out.println((count%(size-1)+1));
 				int workRank = count%(size-1)+1;
 		        MPI.COMM_WORLD.Send(msg, 0, 1, MPI.OBJECT, workRank, 13);
 		        if(workRank == (size-1)){
 		        	for(int i=1;i<size;i++){
-		        		int[] index = new int[10];
+		        		int[] index = new int[1];
 				        MPI.COMM_WORLD.Recv(index, 0, 1, MPI.INT, i, 13);
 				        if(index[0]!=-1){
 						      assign2Area(index[0]);
@@ -77,7 +48,7 @@ public class Main {
 			//Last few workRanks
 			//System.out.println(count+"-"+count%(size-1));
 			for(int i=1;i<=count%(size-1);i++){
-        		int[] index = new int[10];
+        		int[] index = new int[1];
 		        MPI.COMM_WORLD.Recv(index, 0, 1, MPI.INT, i, 13);
 		        if(index[0]!=-1){
 				      assign2Area(index[0]);
@@ -86,43 +57,31 @@ public class Main {
 			
 			br.close();
 			for(int i=0;i<size-1;i++){
+				String[] msg = new String[1]; 
 				msg[0] = "end";
 		        MPI.COMM_WORLD.Send(msg, 0, 1, MPI.OBJECT, i+1, 13);
-		        int[] index = new int[10];
+		        int[] index = new int[1];
 		        MPI.COMM_WORLD.Recv(index, 0, 1, MPI.INT, i+1, 13);
 		        //System.out.println("Finished Receiving end");
 			}
-	      
-	      /*msg[0] = new String("{\"json\":{\"coordinates\":{\"coordinates\":[145.19870907,-37.72320424]}}}");
-	      MPI.COMM_WORLD.Send(msg, 0, 1, MPI.OBJECT, 1, 13);
-	      int[] index = new int[10];
-	      MPI.COMM_WORLD.Recv(index, 0, 1, MPI.INT, 1, 13);
-	      System.out.println(index[0]);
-	      assign2Area(index[0]);*/
-	      //assignArea[index[0]]++;
-	      //System.out.println(assignArea[index[0]]);
 	    }else {
 	    	//System.out.println("rank:"+rank);
 	    	while(true){
-	    		  String[] message = new String[10]; 
+	    		  String[] message = new String[1]; 
 		  	      MPI.COMM_WORLD.Recv(message, 0, 1, MPI.OBJECT, 0, 13);
 		  	      //System.out.println(message[0]);
 		  	      if(message[0].equals("end")){
-		  	    	int[] index = new int[10];
+		  	    	int[] index = new int[1];
 			  	      //System.out.println(message[0]);
 			  	      index[0]= -1;
 			  	      MPI.COMM_WORLD.Send(index, 0, 1, MPI.INT, 0, 13);
 		  	    	  break;
 		  	      }
-		  	      int[] index = new int[10];
+		  	      int[] index = new int[1];
 		  	      //System.out.println(message[0]);
 		  	      index[0]= json2BoxName(message[0]);
 		  	      MPI.COMM_WORLD.Send(index, 0, 1, MPI.INT, 0, 13);
-	    	}
-	      
-	      
-	      
-	      
+	    	}	      
 	    }
 	    System.out.println(rank+":Ready to finalize");
 	    if(rank == 0){
@@ -168,11 +127,14 @@ public class Main {
 	
 	
 	public static double[] getLocation(String str){
+		str=str+"\r\n";
+		str=str.replace(",\r\n", "");
 		double[] result = new double[2];
-		@SuppressWarnings("deprecation")
-		JSONObject entry=new JSONObject(str);//http://docs.oracle.com/javaee/7/api/javax/json/JsonObject.html
-	    JSONArray coordinates = entry.getJSONObject("json").getJSONObject("coordinates").getJSONArray("coordinates");
-	    if(coordinates.length() == 2){
+		Gson gson = new Gson();
+		JsonElement jelem = gson.fromJson(str, JsonElement.class);
+		JsonObject jobj = jelem.getAsJsonObject();
+		JsonArray coordinates = jobj.getAsJsonObject("json").getAsJsonObject("coordinates").getAsJsonArray("coordinates");
+	    if(coordinates.size() == 2){
 	    	result[0] = Double.parseDouble(coordinates.get(0).toString());
 	    	result[1] = Double.parseDouble(coordinates.get(1).toString());
 	    }
@@ -181,41 +143,6 @@ public class Main {
 	    }
 		return result;
 	}
-	
-	public static void run(){
-		try{
-			//TODO: Read the areas from file into areas
-			int areasCount = 100;
-			double[][][] areas = new double[areasCount][4][2];
-			
-			BufferedReader br = new BufferedReader(new FileReader("data/tinyTwitter.json"));
-			int count = 0;
-			while(br.ready()){
-				String str = br.readLine();
-				if(str.equals("[")||str.equals("]")){
-					continue;
-				}
-				
-				double[] coordinates = getLocation(str);
-				if(coordinates != null){
-					System.out.println(count+":"+coordinates[0]+" "+coordinates[1]);
-					for(int i=0;i<areas.length;i++){
-						if(inArea(areas[i],coordinates) == true){
-							assign2Area(i);
-							break;
-						}
-					}
-					count++;
-				}
-			}
-			br.close();
-		}
-		catch(Exception ee){
-			ee.printStackTrace();
-		}
-	}
-	
-	
 	
 	public static boolean inArea(double[][] area, double[] coordinates){ //area: {{1,2},{2,2},{2,3},{1,3}}
 		if(coordinates.length != 2) return false;
@@ -238,6 +165,7 @@ public class Main {
 		}
 	}
 	public static synchronized void assign2Area(int index){
+		if(index>=0)
 		assignArea[index]++;
 	}
 	
