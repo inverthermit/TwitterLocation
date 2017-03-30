@@ -51,7 +51,7 @@ public class Main {
 	  
 	    if (rank == 0){
 	      String[] msg = new String[10]; 
-	      BufferedReader br = new BufferedReader(new FileReader("data/tinyTwitter.json"));
+	      BufferedReader br = new BufferedReader(new FileReader(args[3]));//data/tinyTwitter.json
 			int count = 0;
 			while(br.ready()){
 				//System.out.println(count);
@@ -127,17 +127,32 @@ public class Main {
 	    System.out.println(rank+":Ready to finalize");
 	    if(rank == 0){
 	    	 for(int i=0;i<Common.AREA_SIZE;i++){
-	    		  System.out.println(Common.BOX_NAMES[i]+":"+assignArea[i]);
+	    		 String outLine = Common.BOX_NAMES[i]+":"+assignArea[i];
+	    		  System.out.println(outLine);
+	    		  append2File(args[4],outLine);
 	      }
 	    	 Date endDate = new Date();
 	 		String end = (dateFormat.format(endDate));
 	 		System.out.println("Start:"+start);
 	 		System.out.println("End: "+end);
+	 		/*for(int i=0;i<args.length;i++){
+	 			System.out.println(args[i]);
+	 		}*/
 	    }
 	    MPI.Finalize() ;
 		//run();
 		
 
+	}
+	
+	public static void append2File(String path,String content) throws IOException{
+		File file = new File(path);
+		file.createNewFile(); // if file already exists will do nothing
+		BufferedWriter bw = new BufferedWriter(new FileWriter(path, true));
+		bw.write(content);
+		bw.newLine();
+		bw.close();
+		
 	}
 	
 	public static int json2BoxName(String str){
