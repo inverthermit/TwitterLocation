@@ -2,7 +2,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-
+import java.util.*;
 
 public class Common {
 	public static final double[][][] BOXES = {
@@ -23,6 +23,8 @@ public class Common {
 		{{ 145.15, -37.95 }, { 145.3, -37.95 }, { 145.3, -38.1 }, { 145.15, -38.1 }},
 		{{ 145.3, -37.95 }, { 145.45, -37.95 }, { 145.45, -38.1 }, { 145.3, -38.1 }}
 		};
+	public static final int ROW_NUM = 4;
+	public static final int COLUMN_NUM = 5;
 	public static final String[] BOX_NAMES ={
 		"A1","A2","A3","A4",
 		"B1","B2","B3","B4",
@@ -39,5 +41,26 @@ public class Common {
 		bw.newLine();
 		bw.close();
 		
+	}
+	
+	public static <K, V extends Comparable<? super V>> Map<K, V> 
+    sortByValue( Map<K, V> map )
+	{
+	    List<Map.Entry<K, V>> list =
+	        new LinkedList<Map.Entry<K, V>>( map.entrySet() );
+	    Collections.sort( list, new Comparator<Map.Entry<K, V>>()
+	    {
+	        public int compare( Map.Entry<K, V> o1, Map.Entry<K, V> o2 )
+	        {
+	            return -(o1.getValue()).compareTo( o2.getValue() );
+	        }
+	    } );
+	
+	    Map<K, V> result = new LinkedHashMap<K, V>();
+	    for (Map.Entry<K, V> entry : list)
+	    {
+	        result.put( entry.getKey(), entry.getValue() );
+	    }
+	    return result;
 	}
 }
