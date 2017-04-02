@@ -18,11 +18,8 @@ public class Main {
 		MPI.Init(args);
 		int rank = MPI.COMM_WORLD.Rank();
 		int size = MPI.COMM_WORLD.Size();
-	  
-	    if (rank == 0){
-	      
-	      BufferedReader br = new BufferedReader(new FileReader(args[3]));//data/tinyTwitter.json
-			int count = 0;
+		if(size == 1){
+			BufferedReader br = new BufferedReader(new FileReader(args[3]));//data/tinyTwitter.json
 			while(br.ready()){
 				//System.out.println(count);
 				String str = br.readLine();
@@ -31,65 +28,108 @@ public class Main {
 				}
 				String[] msg = new String[1]; 
 				msg[0] = str;
-				//System.out.println((count%(size-1)+1));
-				int workRank = count%(size-1)+1;
-		        MPI.COMM_WORLD.Send(msg, 0, 1, MPI.OBJECT, workRank, 13);
-		        if(workRank == (size-1)){
-		        	for(int i=1;i<size;i++){
+				int[] index = new int[1];
+		  	      //System.out.println(message[0]);
+		  	      index[0]= json2BoxName(str);
+		  	    if(index[0]!=-1){
+				      assign2Area(index[0]);
+			    }
+			}
+			br.close();
+		}
+		else{
+			if (rank == 0){
+			      
+			      BufferedReader br = new BufferedReader(new FileReader(args[3]));//data/tinyTwitter.json
+					int count = 0;
+					while(br.ready()){
+						//System.out.println(count);
+						String str = br.readLine();
+						if(str.equals("[")||str.equals("]")){
+							continue;
+						}
+						String[] msg = new String[1]; 
+						msg[0] = str;
+						//System.out.println((count%(size-1)+1));
+						int workRank = count%(size-1)+1;
+				        MPI.COMM_WORLD.Send(msg, 0, 1, MPI.OBJECT, workRank, 13);
+				        if(workRank == (size-1)){
+				        	for(int i=1;i<size;i++){
+				        		int[] index = new int[1];
+						        MPI.COMM_WORLD.Recv(index, 0, 1, MPI.INT, i, 13);
+						        if(index[0]!=-1){
+								      assign2Area(index[0]);
+							    }
+				        	}
+				        }
+				        count++;
+					}
+					//Last few workRanks
+					//System.out.println(count+"-"+count%(size-1));
+					for(int i=1;i<=count%(size-1);i++){
 		        		int[] index = new int[1];
 				        MPI.COMM_WORLD.Recv(index, 0, 1, MPI.INT, i, 13);
 				        if(index[0]!=-1){
 						      assign2Area(index[0]);
 					    }
 		        	}
-		        }
-		        count++;
-			}
-			//Last few workRanks
-			//System.out.println(count+"-"+count%(size-1));
-			for(int i=1;i<=count%(size-1);i++){
-        		int[] index = new int[1];
-		        MPI.COMM_WORLD.Recv(index, 0, 1, MPI.INT, i, 13);
-		        if(index[0]!=-1){
-				      assign2Area(index[0]);
+					
+					br.close();
+					for(int i=0;i<size-1;i++){
+						String[] msg = new String[1]; 
+						msg[0] = "end";
+				        MPI.COMM_WORLD.Send(msg, 0, 1, MPI.OBJECT, i+1, 13);
+				        int[] index = new int[1];
+				        MPI.COMM_WORLD.Recv(index, 0, 1, MPI.INT, i+1, 13);
+				        //System.out.println("Finished Receiving end");
+					}
+			    }else {
+			    	//System.out.println("rank:"+rank);
+			    	while(true){
+			    		  String[] message = new String[1]; 
+				  	      MPI.COMM_WORLD.Recv(message, 0, 1, MPI.OBJECT, 0, 13);
+				  	      //System.out.println(message[0]);
+				  	      if(message[0].equals("end")){
+				  	    	int[] index = new int[1];
+					  	      //System.out.println(message[0]);
+					  	      index[0]= -1;
+					  	      MPI.COMM_WORLD.Send(index, 0, 1, MPI.INT, 0, 13);
+				  	    	  break;
+				  	      }
+				  	      int[] index = new int[1];
+				  	      //System.out.println(message[0]);
+				  	      index[0]= json2BoxName(message[0]);
+				  	      MPI.COMM_WORLD.Send(index, 0, 1, MPI.INT, 0, 13);
+			    	}	      
 			    }
-        	}
-			
-			br.close();
-			for(int i=0;i<size-1;i++){
-				String[] msg = new String[1]; 
-				msg[0] = "end";
-		        MPI.COMM_WORLD.Send(msg, 0, 1, MPI.OBJECT, i+1, 13);
-		        int[] index = new int[1];
-		        MPI.COMM_WORLD.Recv(index, 0, 1, MPI.INT, i+1, 13);
-		        //System.out.println("Finished Receiving end");
-			}
-	    }else {
-	    	//System.out.println("rank:"+rank);
-	    	while(true){
-	    		  String[] message = new String[1]; 
-		  	      MPI.COMM_WORLD.Recv(message, 0, 1, MPI.OBJECT, 0, 13);
-		  	      //System.out.println(message[0]);
-		  	      if(message[0].equals("end")){
-		  	    	int[] index = new int[1];
-			  	      //System.out.println(message[0]);
-			  	      index[0]= -1;
-			  	      MPI.COMM_WORLD.Send(index, 0, 1, MPI.INT, 0, 13);
-		  	    	  break;
-		  	      }
-		  	      int[] index = new int[1];
-		  	      //System.out.println(message[0]);
-		  	      index[0]= json2BoxName(message[0]);
-		  	      MPI.COMM_WORLD.Send(index, 0, 1, MPI.INT, 0, 13);
-	    	}	      
-	    }
+		}
+	    
 	    System.out.println(rank+":Ready to finalize");
 	    if(rank == 0){
-	    	 for(int i=0;i<Common.AREA_SIZE;i++){
+	    	int[] counts = new int[4];
+	    	for(int i=0;i<Common.AREA_SIZE;i++){
 	    		 String outLine = Common.BOX_NAMES[i]+":"+assignArea[i];
+	    		 if(i<4){
+	    			 counts[0]+=assignArea[i];
+	    		 }
+	    		 else if(i<8){
+	    			 counts[1]+=assignArea[i];
+	    		 }
+	    		 else if(i<13){
+	    			 counts[2]+=assignArea[i];
+	    		 }
+	    		 else if(i<16){
+	    			 counts[3]+=assignArea[i];
+	    		 }
 	    		  System.out.println(outLine);
-	    		  append2File(args[4],outLine);
+	    		  Common.append2File(args[4],outLine);
 	      }
+	      for(int i=0;i<4;i++){
+	    	  String line = (char)('A'+i)+":"+counts[i];
+	    	  Common.append2File(args[4],line);
+	    	  System.out.println(line);
+	      }
+	    	 
 	    	 Date endDate = new Date();
 	 		String end = (dateFormat.format(endDate));
 	 		System.out.println("Start:"+start);
@@ -104,15 +144,7 @@ public class Main {
 
 	}
 	
-	public static void append2File(String path,String content) throws IOException{
-		File file = new File(path);
-		file.createNewFile(); // if file already exists will do nothing
-		BufferedWriter bw = new BufferedWriter(new FileWriter(path, true));
-		bw.write(content);
-		bw.newLine();
-		bw.close();
-		
-	}
+	
 	
 	public static int json2BoxName(String str){
 		double[] coo = getLocation(str);
@@ -169,12 +201,6 @@ public class Main {
 		assignArea[index]++;
 	}
 	
-	public static void save2file(){
-		for(int i=0;i<assignArea.length;i++){
-			String line = Common.BOX_NAMES[i]+":"+assignArea[i];
-			//Save Line to a file
-		}
-	}
 	
 
 }

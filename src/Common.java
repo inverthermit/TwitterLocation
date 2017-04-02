@@ -1,3 +1,8 @@
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+
 
 public class Common {
 	public static final double[][][] BOXES = {
@@ -25,4 +30,14 @@ public class Common {
 		"D3","D4","D5"
 	};
 	public static final int AREA_SIZE = BOX_NAMES.length;
+	
+	public static void append2File(String path,String content) throws IOException{
+		File file = new File(path);
+		file.createNewFile(); // if file already exists will do nothing
+		BufferedWriter bw = new BufferedWriter(new FileWriter(path, true));
+		bw.write(content);
+		bw.newLine();
+		bw.close();
+		
+	}
 }
