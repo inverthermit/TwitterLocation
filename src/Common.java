@@ -35,6 +35,10 @@ public class Common {
 	
 	public static void append2File(String path,String content) throws IOException{
 		File file = new File(path);
+		String absolutePath = file.getAbsolutePath();
+	    String filePath = absolutePath.
+	    	     substring(0,absolutePath.lastIndexOf(File.separator));
+	    new File(filePath).mkdirs();
 		file.createNewFile(); // if file already exists will do nothing
 		BufferedWriter bw = new BufferedWriter(new FileWriter(path, true));
 		bw.write(content);

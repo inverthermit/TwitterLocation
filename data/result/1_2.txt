@@ -1,0 +1,66 @@
+C2: 50 tweets,
+B2: 36 tweets,
+C3: 15 tweets,
+B3: 8 tweets,
+B1: 7 tweets,
+C4: 7 tweets,
+D3: 4 tweets,
+A2: 2 tweets,
+A3: 2 tweets,
+B4: 2 tweets,
+D4: 2 tweets,
+C1: 1 tweets,
+C5: 1 tweets,
+D5: 1 tweets,
+A1: 0 tweets,
+A4: 0 tweets,
+
+
+C-Row: 74 tweets,
+B-Row: 53 tweets,
+D-Row: 7 tweets,
+A-Row: 4 tweets,
+
+
+Column 2: 88 tweets,
+Column 3: 29 tweets,
+Column 4: 11 tweets,
+Column 1: 8 tweets,
+Column 5: 2 tweets,
+
+
+Start:2017/04/03 16:46:22
+End: 2017/04/03 16:46:23
+C2: 50 tweets,
+B2: 36 tweets,
+C3: 15 tweets,
+B3: 8 tweets,
+B1: 7 tweets,
+C4: 7 tweets,
+D3: 4 tweets,
+A2: 2 tweets,
+A3: 2 tweets,
+B4: 2 tweets,
+D4: 2 tweets,
+C1: 1 tweets,
+C5: 1 tweets,
+D5: 1 tweets,
+A1: 0 tweets,
+A4: 0 tweets,
+
+
+C-Row: 74 tweets,
+B-Row: 53 tweets,
+D-Row: 7 tweets,
+A-Row: 4 tweets,
+
+
+Column 2: 88 tweets,
+Column 3: 29 tweets,
+Column 4: 11 tweets,
+Column 1: 8 tweets,
+Column 5: 2 tweets,
+
+
+Start:2017/04/03 16:46:27
+End: 2017/04/03 16:46:28

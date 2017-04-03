@@ -25,7 +25,7 @@ public class Main
         {
             if(size == 1)
             {
-                BufferedReader br = new BufferedReader(new FileReader(args[3]));//data/tinyTwitter.json
+                BufferedReader br = new BufferedReader(new FileReader(args[3]));//data/bigTwitter.json
                 while(br.ready())
                 {
                     //System.out.println(count);
@@ -174,6 +174,8 @@ public class Main
             //Output end time
             Date endDate = new Date();
             String end = (dateFormat.format(endDate));
+            Common.append2File(args[4],"Start:"+start);
+            Common.append2File(args[4],"End: "+end);
             System.out.println("Start:"+start);
             System.out.println("End: "+end);
         }
@@ -186,6 +188,7 @@ public class Main
     public static void saveResult2File(Map<String, Integer> areaMap,
     		Map<String, Integer> rowMap, Map<String, Integer> columnMap, String path) throws Exception
     {
+    	
         for (Map.Entry<String, Integer> entry : areaMap.entrySet())
         {
             String line = entry.getKey() + ": " + entry.getValue()+" tweets,";
@@ -193,7 +196,7 @@ public class Main
             System.out.println(line);
         }
         System.out.println();
-        Common.append2File(path,"\r\n");
+        Common.append2File(path,"\n");
         for (Map.Entry<String, Integer> entry : rowMap.entrySet())
         {
             String line = entry.getKey() + "-Row: " + entry.getValue()+" tweets,";
@@ -201,25 +204,18 @@ public class Main
             System.out.println(line);
         }
         System.out.println();
-        Common.append2File(path,"\r\n");
+        Common.append2File(path,"\n");
         for (Map.Entry<String, Integer> entry : columnMap.entrySet())
         {
             String line = "Column "+entry.getKey() + ": " + entry.getValue()+" tweets,";
             Common.append2File(path,line);
             System.out.println(line);
         }
+
+        Common.append2File(path,"\n");
     }
 
-    public static void append2File(String path,String content) throws IOException
-    {
-        File file = new File(path);
-        file.createNewFile(); // if file already exists will do nothing
-        BufferedWriter bw = new BufferedWriter(new FileWriter(path, true));
-        bw.write(content);
-        bw.newLine();
-        bw.close();
 
-    }
 
     public static int json2BoxName(String str)
     {
